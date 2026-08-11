@@ -45,11 +45,11 @@ export default function Home({ records }: { records: WorkoutRecord[] }) {
     <div className="flex flex-col gap-4">
       <h1 className="mt-2 text-2xl font-bold">ホーム</h1>
 
-      <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
+      <div className="rounded-xl border border-border bg-surface p-3 shadow-sm">
         <div className="mb-2 flex items-center justify-between">
           <button
             type="button"
-            className="h-9 w-9 cursor-pointer rounded-lg border border-gray-200 bg-white text-lg text-gray-800 active:bg-gray-100"
+            className="h-9 w-9 cursor-pointer rounded-lg border border-border bg-surface text-lg text-text active:bg-bg"
             onClick={() => moveMonth(-1)}
             aria-label="前の月"
           >
@@ -60,7 +60,7 @@ export default function Home({ records }: { records: WorkoutRecord[] }) {
           </span>
           <button
             type="button"
-            className="h-9 w-9 cursor-pointer rounded-lg border border-gray-200 bg-white text-lg text-gray-800 active:bg-gray-100"
+            className="h-9 w-9 cursor-pointer rounded-lg border border-border bg-surface text-lg text-text active:bg-bg"
             onClick={() => moveMonth(1)}
             aria-label="次の月"
           >
@@ -71,7 +71,7 @@ export default function Home({ records }: { records: WorkoutRecord[] }) {
           {WEEKDAYS.map((w) => (
             <div
               key={w}
-              className={`py-1 text-center text-xs font-semibold text-gray-500 ${
+              className={`py-1 text-center text-xs font-semibold text-muted ${
                 w === '日' ? 'text-red-600' : ''
               }`}
             >
@@ -85,7 +85,7 @@ export default function Home({ records }: { records: WorkoutRecord[] }) {
             const cellClass = isToday
               ? 'bg-blue-600 font-bold text-white'
               : isSelected
-                ? 'bg-blue-100 font-bold text-blue-700 ring-2 ring-blue-600'
+                ? 'bg-blue-100 font-bold text-blue-700 ring-2 ring-blue-600 dark:bg-blue-900 dark:text-blue-200'
                 : ''
             if (date === null) {
               return <div key={`empty-${i}`} className="aspect-square" />
@@ -114,13 +114,13 @@ export default function Home({ records }: { records: WorkoutRecord[] }) {
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <div className="flex flex-col gap-1 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="flex flex-col gap-1 rounded-xl border border-border bg-surface p-4 shadow-sm">
           <span className="text-[28px] font-bold text-blue-600">{monthCount}</span>
-          <span className="text-xs text-gray-500">当月のワークアウト数</span>
+          <span className="text-xs text-muted">当月のワークアウト数</span>
         </div>
-        <div className="flex flex-col gap-1 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="flex flex-col gap-1 rounded-xl border border-border bg-surface p-4 shadow-sm">
           <span className="text-[28px] font-bold text-blue-600">{totalCount}</span>
-          <span className="text-xs text-gray-500">累計ワークアウト数</span>
+          <span className="text-xs text-muted">累計ワークアウト数</span>
         </div>
       </div>
 
@@ -130,7 +130,7 @@ export default function Home({ records }: { records: WorkoutRecord[] }) {
             {selectedDate.slice(0, 4)}年{Number(selectedDate.slice(5, 7))}月{Number(selectedDate.slice(8, 10))}日のワークアウト
           </p>
           {dayRecords.length === 0 ? (
-            <p className="rounded-[10px] border border-gray-200 bg-white py-6 text-center text-sm text-gray-500">
+            <p className="rounded-[10px] border border-border bg-surface py-6 text-center text-sm text-muted">
               この日の記録はありません
             </p>
           ) : (

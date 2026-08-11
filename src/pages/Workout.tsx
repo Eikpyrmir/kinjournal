@@ -101,7 +101,7 @@ export default function Workout({ records, onSave, onDelete }: Props) {
         <label className="text-sm font-semibold" htmlFor="workout-date">日付</label>
         <input
           id="workout-date"
-          className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-base text-gray-800"
+          className="rounded-lg border border-border bg-surface px-3 py-2.5 text-base text-text"
           type="date"
           value={date}
           onChange={(e) => handleDateChange(e.target.value)}
@@ -116,17 +116,17 @@ export default function Workout({ records, onSave, onDelete }: Props) {
             return (
               <div
                 key={r.id}
-                className={`rounded-[10px] border border-gray-200 bg-white p-3 shadow-sm ${
+                className={`rounded-[10px] border border-border bg-surface p-3 shadow-sm ${
                   pending ? 'opacity-45' : ''
                 }`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-sm font-bold text-blue-600">{t.label}</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500">{r.sets.length}セット</span>
+                    <span className="text-xs text-muted">{r.sets.length}セット</span>
                     <button
                       type="button"
-                      className={`cursor-pointer rounded-md border border-gray-200 bg-white text-sm leading-none text-gray-500 ${
+                      className={`cursor-pointer rounded-md border border-border bg-surface text-sm leading-none text-muted ${
                         pending
                           ? 'min-w-11 border-blue-600 px-2 text-xs text-blue-600'
                           : 'h-7 min-w-7'
@@ -143,7 +143,7 @@ export default function Workout({ records, onSave, onDelete }: Props) {
                 >
                   {r.sets.map((s) => `${s}${t.unit}`).join(' / ')}
                 </p>
-                {r.memo !== '' && <p className="mt-1 text-[13px] text-gray-500">{r.memo}</p>}
+                {r.memo !== '' && <p className="mt-1 text-[13px] text-muted">{r.memo}</p>}
               </div>
             )
           })}
@@ -161,8 +161,8 @@ export default function Workout({ records, onSave, onDelete }: Props) {
                   type="button"
                   className={
                     type === t.id
-                      ? 'cursor-pointer rounded-lg border border-blue-600 bg-blue-50 px-1 py-2.5 text-sm font-semibold text-blue-600'
-                      : 'cursor-pointer rounded-lg border border-gray-200 bg-white px-1 py-2.5 text-sm text-gray-800'
+                      ? 'cursor-pointer rounded-lg border border-blue-600 bg-blue-50 px-1 py-2.5 text-sm font-semibold text-blue-600 dark:bg-blue-950'
+                      : 'cursor-pointer rounded-lg border border-border bg-surface px-1 py-2.5 text-sm text-text'
                   }
                   onClick={() => setType(t.id)}
                 >
@@ -176,7 +176,7 @@ export default function Workout({ records, onSave, onDelete }: Props) {
             <label className="text-sm font-semibold" htmlFor="memo">メモ（任意）</label>
             <textarea
               id="memo"
-              className="resize-y rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-base text-gray-800"
+              className="resize-y rounded-lg border border-border bg-surface px-3 py-2.5 text-base text-text"
               rows={3}
               value={memo}
               placeholder="例: 集中してできた"
@@ -187,17 +187,17 @@ export default function Workout({ records, onSave, onDelete }: Props) {
           <div className="flex flex-col gap-2">
             <div className="flex items-baseline justify-between">
               <label className="text-sm font-semibold">セット</label>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-muted">
                 {sets.length} / {MAX_SETS}
               </span>
             </div>
             <div className="flex flex-col gap-2">
               {sets.map((value, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <span className="w-16 text-[13px] text-gray-500">{i + 1}セット</span>
-                  <div className="flex flex-1 items-center overflow-hidden rounded-lg border border-gray-200 bg-white">
+                  <span className="w-16 text-[13px] text-muted">{i + 1}セット</span>
+                  <div className="flex flex-1 items-center overflow-hidden rounded-lg border border-border bg-surface">
                     <input
-                      className="min-w-0 flex-1 border-none bg-transparent px-3 py-2.5 text-base text-gray-800 outline-none"
+                      className="min-w-0 flex-1 border-none bg-transparent px-3 py-2.5 text-base text-text outline-none"
                       type="number"
                       inputMode="numeric"
                       min="1"
@@ -205,11 +205,11 @@ export default function Workout({ records, onSave, onDelete }: Props) {
                       placeholder="0"
                       onChange={(e) => updateSet(i, e.target.value)}
                     />
-                    <span className="pr-3 text-sm text-gray-500">{unit}</span>
+                    <span className="pr-3 text-sm text-muted">{unit}</span>
                   </div>
                   <button
                     type="button"
-                    className="h-10 w-10 cursor-pointer rounded-lg border border-gray-200 bg-white text-lg text-gray-500 disabled:opacity-35"
+                    className="h-10 w-10 cursor-pointer rounded-lg border border-border bg-surface text-lg text-muted disabled:opacity-35"
                     onClick={() => removeSet(i)}
                     disabled={sets.length === 1}
                     aria-label={`${i + 1}セット目を削除`}
@@ -221,7 +221,7 @@ export default function Workout({ records, onSave, onDelete }: Props) {
             </div>
             <button
               type="button"
-              className="cursor-pointer rounded-lg border border-dashed border-gray-200 bg-white py-2.5 text-sm font-semibold text-blue-600 disabled:text-gray-500"
+              className="cursor-pointer rounded-lg border border-dashed border-border bg-surface py-2.5 text-sm font-semibold text-blue-600 disabled:text-muted"
               onClick={addSet}
               disabled={!canAdd}
             >
@@ -233,7 +233,7 @@ export default function Workout({ records, onSave, onDelete }: Props) {
 
       <button
         type="button"
-        className="cursor-pointer rounded-[10px] border border-blue-600 bg-blue-50 py-3.5 text-base font-bold text-blue-600 active:bg-blue-100"
+        className="cursor-pointer rounded-[10px] border border-blue-600 bg-blue-50 py-3.5 text-base font-bold text-blue-600 active:bg-blue-100 dark:bg-blue-950 dark:active:bg-blue-900/60"
         onClick={handleAddWorkout}
       >
         ワークアウトを追加
@@ -242,7 +242,7 @@ export default function Workout({ records, onSave, onDelete }: Props) {
       {(formOpen || hasPendingDelete) && (
         <button
           type="button"
-          className="cursor-pointer rounded-[10px] border-none bg-blue-600 py-3.5 text-base font-bold text-white active:bg-blue-700 disabled:bg-blue-200"
+          className="cursor-pointer rounded-[10px] border-none bg-blue-600 py-3.5 text-base font-bold text-white active:bg-blue-700 disabled:bg-blue-200 dark:disabled:bg-blue-900"
           onClick={handleSave}
           disabled={!canSave}
         >

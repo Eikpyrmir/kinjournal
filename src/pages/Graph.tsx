@@ -35,7 +35,7 @@ export default function Graph({ records }: Props) {
         <label className="text-sm font-semibold" htmlFor="graph-type">種類</label>
         <select
           id="graph-type"
-          className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-base text-gray-800"
+          className="rounded-lg border border-border bg-surface px-3 py-2.5 text-base text-text"
           value={type}
           onChange={(e) => setType(e.target.value as WorkoutTypeId)}
         >
@@ -48,25 +48,31 @@ export default function Graph({ records }: Props) {
       </div>
 
       {data.length === 0 ? (
-        <p className="rounded-xl border border-gray-200 bg-white py-6 text-center text-gray-500">
+        <p className="rounded-xl border border-border bg-surface py-6 text-center text-muted">
           {label}の記録がまだありません
         </p>
       ) : (
-        <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
+        <div className="rounded-xl border border-border bg-surface p-3 shadow-sm">
           <p className="mb-2 text-sm font-semibold">
             {label} 日別合計（{unit}）
           </p>
           <ResponsiveContainer width="100%" height={280}>
             <LineChart data={data} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--app-border)" />
               <XAxis dataKey="date" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} width={40} />
-              <Tooltip />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'var(--app-surface)',
+                  border: '1px solid var(--app-border)',
+                  color: 'var(--app-text)',
+                }}
+              />
               <Line type="monotone" dataKey="total" stroke="#2563eb" strokeWidth={2} dot={{ r: 3 }} />
               <Label
                 value={`最大 ${data.reduce((max, d) => Math.max(max, d.total), 0)}${unit}`}
                 position="insideBottomRight"
-                fill="#6b7280"
+                fill="var(--app-muted)"
                 fontSize={12}
               />
             </LineChart>

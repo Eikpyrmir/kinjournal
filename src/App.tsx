@@ -11,7 +11,7 @@ export default function App() {
   const { records, addRecord, replaceRecords, deleteRecords } = useWorkouts()
 
   return (
-    <div className="mx-auto flex min-h-svh max-w-[480px] flex-col bg-gray-100">
+    <div className="mx-auto flex min-h-svh max-w-[480px] flex-col bg-bg">
       <main className="flex-1 px-4 pt-4 pb-[calc(84px+env(safe-area-inset-bottom))]">
         {tab === 'home' && <Home records={records} />}
         {tab === 'workout' && (

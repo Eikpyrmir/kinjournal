@@ -44,19 +44,19 @@ export default function Settings({ records, onReplace }: Props) {
     <div className="flex flex-col gap-4">
       <h1 className="mt-2 text-2xl font-bold">データ</h1>
 
-      <p className="text-sm text-gray-500">記録件数: {records.length}</p>
+      <p className="text-sm text-muted">記録件数: {records.length}</p>
 
       <div className="flex flex-col gap-3">
         <button
           type="button"
-          className="cursor-pointer rounded-[10px] border border-gray-200 bg-white py-3.5 text-base font-semibold text-gray-800 active:bg-gray-100"
+          className="cursor-pointer rounded-[10px] border border-border bg-surface py-3.5 text-base font-semibold text-text active:bg-bg"
           onClick={handleExport}
         >
           データをエクスポート
         </button>
         <button
           type="button"
-          className="cursor-pointer rounded-[10px] border border-gray-200 bg-white py-3.5 text-base font-semibold text-gray-800 active:bg-gray-100"
+          className="cursor-pointer rounded-[10px] border border-border bg-surface py-3.5 text-base font-semibold text-text active:bg-bg"
           onClick={() => fileInputRef.current?.click()}
         >
           データをインポート

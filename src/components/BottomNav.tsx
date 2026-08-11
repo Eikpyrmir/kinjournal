@@ -35,7 +35,7 @@ interface Props {
 export default function BottomNav({ tab, onChange }: Props) {
   const tabs = Object.keys(LABELS) as TabId[]
   return (
-    <nav className="fixed bottom-0 left-1/2 flex w-full max-w-[480px] -translate-x-1/2 border-t border-gray-200 bg-white px-1 pt-1 pb-[calc(4px+env(safe-area-inset-bottom))]">
+    <nav className="fixed bottom-0 left-1/2 flex w-full max-w-[480px] -translate-x-1/2 border-t border-border bg-surface px-1 pt-1 pb-[calc(4px+env(safe-area-inset-bottom))]">
       {tabs.map((id) => (
         <button
           key={id}
@@ -43,7 +43,7 @@ export default function BottomNav({ tab, onChange }: Props) {
           className={
             tab === id
               ? 'flex flex-1 cursor-pointer flex-col items-center gap-0.5 border-none bg-none py-1.5 text-[11px] font-semibold text-blue-600'
-              : 'flex flex-1 cursor-pointer flex-col items-center gap-0.5 border-none bg-none py-1.5 text-[11px] text-gray-500'
+              : 'flex flex-1 cursor-pointer flex-col items-center gap-0.5 border-none bg-none py-1.5 text-[11px] text-muted'
           }
           onClick={() => onChange(id)}
         >
