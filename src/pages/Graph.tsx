@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Label } from 'recharts'
 import { WORKOUT_TYPES, type WorkoutRecord, type WorkoutTypeId } from '../types'
 
 interface Props {
@@ -16,13 +16,12 @@ export default function Graph({ records }: Props) {
       const sum = r.sets.reduce((a, b) => a + b, 0)
       byDate.set(r.date, (byDate.get(r.date) ?? 0) + sum)
     }
-    let cumulative = 0
     return [...byDate.entries()]
       .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([date, value]) => {
-        cumulative += value
-        return { date: date.slice(5).replace('-', '/'), cumulative }
-      })
+      .map(([date, value]) => ({
+        date: date.slice(5).replace('-', '/'),
+        total: value,
+      }))
   }, [records, type])
 
   const label = WORKOUT_TYPES.find((t) => t.id === type)!.label
@@ -55,7 +54,7 @@ export default function Graph({ records }: Props) {
       ) : (
         <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
           <p className="mb-2 text-sm font-semibold">
-            {label} 累計（{unit}）
+            {label} 日別合計（{unit}）
           </p>
           <ResponsiveContainer width="100%" height={280}>
             <LineChart data={data} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
@@ -63,7 +62,13 @@ export default function Graph({ records }: Props) {
               <XAxis dataKey="date" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} width={40} />
               <Tooltip />
-              <Line type="monotone" dataKey="cumulative" stroke="#2563eb" strokeWidth={2} dot={{ r: 3 }} />
+              <Line type="monotone" dataKey="total" stroke="#2563eb" strokeWidth={2} dot={{ r: 3 }} />
+              <Label
+                value={`最大 ${data.reduce((max, d) => Math.max(max, d.total), 0)}${unit}`}
+                position="insideBottomRight"
+                fill="#6b7280"
+                fontSize={12}
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>
