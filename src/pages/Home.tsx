@@ -29,7 +29,7 @@ export default function Home({ records }: { records: WorkoutRecord[] }) {
 
   const monthKey = formatMonthKey(year, month)
   const monthCount = records.filter((r) => r.date.startsWith(monthKey)).length
-  const totalCount = records.length
+  const yearCount = records.filter((r) => r.date.startsWith(String(year))).length
   const dayRecords = selectedDate
     ? records.filter((r) => r.date === selectedDate)
     : []
@@ -115,12 +115,12 @@ export default function Home({ records }: { records: WorkoutRecord[] }) {
 
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-1 rounded-xl border border-border bg-surface p-4 shadow-sm">
-          <span className="text-[28px] font-bold text-blue-600">{monthCount}</span>
           <span className="text-xs text-muted">当月のワークアウト数</span>
+          <span className="text-[28px] font-bold text-blue-600">{monthCount}</span>
         </div>
         <div className="flex flex-col gap-1 rounded-xl border border-border bg-surface p-4 shadow-sm">
-          <span className="text-[28px] font-bold text-blue-600">{totalCount}</span>
-          <span className="text-xs text-muted">累計ワークアウト数</span>
+          <span className="text-xs text-muted">年間ワークアウト数</span>
+          <span className="text-[28px] font-bold text-blue-600">{yearCount}</span>
         </div>
       </div>
 
