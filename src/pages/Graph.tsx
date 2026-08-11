@@ -29,14 +29,14 @@ export default function Graph({ records }: Props) {
   const unit = WORKOUT_TYPES.find((t) => t.id === type)!.unit
 
   return (
-    <div className="page">
-      <h1 className="page-title">グラフ</h1>
+    <div className="flex flex-col gap-4">
+      <h1 className="mt-2 text-2xl font-bold">グラフ</h1>
 
-      <div className="field">
-        <label className="field-label" htmlFor="graph-type">種類</label>
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-semibold" htmlFor="graph-type">種類</label>
         <select
           id="graph-type"
-          className="select"
+          className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-base text-gray-800"
           value={type}
           onChange={(e) => setType(e.target.value as WorkoutTypeId)}
         >
@@ -49,10 +49,12 @@ export default function Graph({ records }: Props) {
       </div>
 
       {data.length === 0 ? (
-        <p className="empty-message">{label}の記録がまだありません</p>
+        <p className="rounded-xl border border-gray-200 bg-white py-6 text-center text-gray-500">
+          {label}の記録がまだありません
+        </p>
       ) : (
-        <div className="chart">
-          <p className="chart-title">
+        <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
+          <p className="mb-2 text-sm font-semibold">
             {label} 累計（{unit}）
           </p>
           <ResponsiveContainer width="100%" height={280}>

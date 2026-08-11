@@ -10,10 +10,13 @@ const ICONS: Record<TabId, ReactElement> = {
     <path d="M5 9v6M7.5 9v6M16.5 9v6M19 9v6M7.5 12h9" />
   ),
   graph: (
-    <path d="M5 19V9M10.5 19V5M16 19v-6M21 19H3" />
+    <>
+      <path d="M4 4v15a1 1 0 0 0 1 1h15" />
+      <path d="M7 14l4-4 4 3 5-6" />
+    </>
   ),
   settings: (
-    <path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM12 2.5V5M12 19v2.5M2.5 12H5M19 12h2.5M5.2 5.2l2 2M16.8 16.8l2 2M18.8 5.2l-2 2M7.2 16.8l-2 2" />
+    <path d="M6 3h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM8 3v5h7V3M8 13h8v7H8z" />
   ),
 }
 
@@ -21,7 +24,7 @@ const LABELS: Record<TabId, string> = {
   home: 'ホーム',
   workout: 'ワークアウト',
   graph: 'グラフ',
-  settings: '設定',
+  settings: 'データ',
 }
 
 interface Props {
@@ -32,15 +35,17 @@ interface Props {
 export default function BottomNav({ tab, onChange }: Props) {
   const tabs = Object.keys(LABELS) as TabId[]
   return (
-    <nav className="bottom-nav">
+    <nav className="fixed bottom-0 left-1/2 flex w-full max-w-[480px] -translate-x-1/2 border-t border-gray-200 bg-white px-1 pt-1 pb-[calc(4px+env(safe-area-inset-bottom))]">
       {tabs.map((id) => (
         <button
           key={id}
           type="button"
-          className={`nav-item${tab === id ? ' active' : ''}`}
+          className={`flex flex-1 cursor-pointer flex-col items-center gap-0.5 border-none bg-none py-1.5 text-[11px] text-gray-500 ${
+            tab === id ? 'font-semibold text-blue-600' : ''
+          }`}
           onClick={() => onChange(id)}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
             {ICONS[id]}
           </svg>
           <span>{LABELS[id]}</span>

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-スマホ向け筋トレ記録 PWA。Vite + React 19 + TypeScript。データはすべて localStorage（外部DBなし）。UI は日本語・モバイルファースト（max-width 480px、下部ナビ4タブ）。
+スマホ向け筋トレ記録 PWA。Vite + React 19 + TypeScript + Tailwind v4。データはすべて localStorage（外部DBなし）。UI は日本語・モバイルファースト（max-width 480px、下部ナビ4タブ）。
 
 ## Commands
 
@@ -19,6 +19,7 @@
 
 ## Conventions & gotchas
 
+- Tailwind v4 は CSS ファースト（`tailwind.config.js` なし）。`src/index.css` の `@theme` でトークン定義（色は既定パレット使用、`@apply` は body のみ）
 - 記録は最大10セット（`MAX_SETS`）。`storage.ts` の検証も10に合わせてあるので、変更時は両方を更新
 - 設定画面のインポートは既存データを**置き換え**（confirm 後に）。マージ機能はない
 - グラフは recharts（bundle 500KB超の警告は既知、対応不要）

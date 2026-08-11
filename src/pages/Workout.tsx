@@ -7,14 +7,16 @@ const MAX_SETS = 10
 interface Props {
   records: WorkoutRecord[]
   onSave: (record: WorkoutRecord) => void
+  onDelete: (ids: string[]) => void
 }
 
-export default function Workout({ records, onSave }: Props) {
+export default function Workout({ records, onSave, onDelete }: Props) {
   const [date, setDate] = useState(todayKey)
   const [type, setType] = useState<WorkoutTypeId>('abs')
   const [memo, setMemo] = useState('')
   const [sets, setSets] = useState<string[]>([''])
   const [saved, setSaved] = useState(false)
+  const [pendingDelete, setPendingDelete] = useState<string[]>([])
   const [formOpen, setFormOpen] = useState(
     () => !records.some((r) => r.date === todayKey()),
   )
@@ -22,10 +24,12 @@ export default function Workout({ records, onSave }: Props) {
   const dayRecords = records.filter((r) => r.date === date)
   const unit = getWorkoutType(type).unit
   const canAdd = sets.length < MAX_SETS
+  const hasPendingDelete = pendingDelete.length > 0
 
   const handleDateChange = (value: string) => {
     setDate(value)
     setFormOpen(!records.some((r) => r.date === value))
+    setPendingDelete([])
     setType('abs')
     setMemo('')
     setSets([''])
@@ -56,18 +60,29 @@ export default function Workout({ records, onSave }: Props) {
     const parsed = sets
       .map((s) => Number(s.trim()))
       .filter((n) => Number.isFinite(n) && n > 0)
-    if (parsed.length === 0) return
-    onSave({
-      id: crypto.randomUUID(),
-      date,
-      type,
-      memo: memo.trim(),
-      sets: parsed,
-      createdAt: Date.now(),
-    })
+    if (parsed.length > 0) {
+      onSave({
+        id: crypto.randomUUID(),
+        date,
+        type,
+        memo: memo.trim(),
+        sets: parsed,
+        createdAt: Date.now(),
+      })
+    }
+    if (hasPendingDelete) {
+      onDelete(pendingDelete)
+    }
+    setPendingDelete([])
     resetForm()
     setSaved(true)
     window.setTimeout(() => setSaved(false), 2500)
+  }
+
+  const toggleDelete = (id: string) => {
+    setPendingDelete((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    )
   }
 
   const handleAddWorkout = () => {
@@ -76,16 +91,17 @@ export default function Workout({ records, onSave }: Props) {
   }
 
   const valid = sets.some((s) => Number.isFinite(Number(s.trim())) && Number(s.trim()) > 0)
+  const canSave = valid || hasPendingDelete
 
   return (
-    <div className="page">
-      <h1 className="page-title">ワークアウト</h1>
+    <div className="flex flex-col gap-4">
+      <h1 className="mt-2 text-2xl font-bold">ワークアウト</h1>
 
-      <div className="field">
-        <label className="field-label" htmlFor="workout-date">日付</label>
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-semibold" htmlFor="workout-date">日付</label>
         <input
           id="workout-date"
-          className="date-input"
+          className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-base text-gray-800"
           type="date"
           value={date}
           onChange={(e) => handleDateChange(e.target.value)}
@@ -93,19 +109,41 @@ export default function Workout({ records, onSave }: Props) {
       </div>
 
       {dayRecords.length > 0 && (
-        <div className="day-records">
+        <div className="flex flex-col gap-2">
           {dayRecords.map((r) => {
             const t = getWorkoutType(r.type)
+            const pending = pendingDelete.includes(r.id)
             return (
-              <div key={r.id} className="record-card">
-                <div className="record-card-head">
-                  <span className="record-card-type">{t.label}</span>
-                  <span className="record-card-count">{r.sets.length}セット</span>
+              <div
+                key={r.id}
+                className={`rounded-[10px] border border-gray-200 bg-white p-3 shadow-sm ${
+                  pending ? 'opacity-45' : ''
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-bold text-blue-600">{t.label}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500">{r.sets.length}セット</span>
+                    <button
+                      type="button"
+                      className={`cursor-pointer rounded-md border border-gray-200 bg-white text-sm leading-none text-gray-500 ${
+                        pending
+                          ? 'min-w-11 border-blue-600 px-2 text-xs text-blue-600'
+                          : 'h-7 min-w-7'
+                      }`}
+                      onClick={() => toggleDelete(r.id)}
+                      aria-label={pending ? '削除を取り消す' : 'このワークアウトを削除'}
+                    >
+                      {pending ? '戻す' : '×'}
+                    </button>
+                  </div>
                 </div>
-                <p className="record-card-sets">
+                <p
+                  className={`mt-1 text-[15px]${pending ? ' line-through' : ''}`}
+                >
                   {r.sets.map((s) => `${s}${t.unit}`).join(' / ')}
                 </p>
-                {r.memo !== '' && <p className="record-card-memo">{r.memo}</p>}
+                {r.memo !== '' && <p className="mt-1 text-[13px] text-gray-500">{r.memo}</p>}
               </div>
             )
           })}
@@ -114,14 +152,16 @@ export default function Workout({ records, onSave }: Props) {
 
       {formOpen && (
         <>
-          <div className="field">
-            <label className="field-label">種類</label>
-            <div className="type-selector">
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-semibold">種類</label>
+            <div className="grid grid-cols-3 gap-2">
               {WORKOUT_TYPES.map((t) => (
                 <button
                   key={t.id}
                   type="button"
-                  className={`type-btn${type === t.id ? ' selected' : ''}`}
+                  className={`cursor-pointer rounded-lg border border-gray-200 bg-white px-1 py-2.5 text-sm text-gray-800 ${
+                    type === t.id ? 'border-blue-600 bg-blue-50 font-semibold text-blue-600' : ''
+                  }`}
                   onClick={() => setType(t.id)}
                 >
                   {t.label}
@@ -130,11 +170,11 @@ export default function Workout({ records, onSave }: Props) {
             </div>
           </div>
 
-          <div className="field">
-            <label className="field-label" htmlFor="memo">メモ（任意）</label>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-semibold" htmlFor="memo">メモ（任意）</label>
             <textarea
               id="memo"
-              className="memo-input"
+              className="resize-y rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-base text-gray-800"
               rows={3}
               value={memo}
               placeholder="例: 集中してできた"
@@ -142,20 +182,20 @@ export default function Workout({ records, onSave }: Props) {
             />
           </div>
 
-          <div className="field">
-            <div className="field-row">
-              <label className="field-label">セット</label>
-              <span className="field-hint">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-baseline justify-between">
+              <label className="text-sm font-semibold">セット</label>
+              <span className="text-xs text-gray-500">
                 {sets.length} / {MAX_SETS}
               </span>
             </div>
-            <div className="set-list">
+            <div className="flex flex-col gap-2">
               {sets.map((value, i) => (
-                <div key={i} className="set-row">
-                  <span className="set-index">{i + 1}セット</span>
-                  <div className="set-input-wrap">
+                <div key={i} className="flex items-center gap-2">
+                  <span className="w-16 text-[13px] text-gray-500">{i + 1}セット</span>
+                  <div className="flex flex-1 items-center overflow-hidden rounded-lg border border-gray-200 bg-white">
                     <input
-                      className="set-input"
+                      className="min-w-0 flex-1 border-none bg-transparent px-3 py-2.5 text-base text-gray-800 outline-none"
                       type="number"
                       inputMode="numeric"
                       min="1"
@@ -163,11 +203,11 @@ export default function Workout({ records, onSave }: Props) {
                       placeholder="0"
                       onChange={(e) => updateSet(i, e.target.value)}
                     />
-                    <span className="set-unit">{unit}</span>
+                    <span className="pr-3 text-sm text-gray-500">{unit}</span>
                   </div>
                   <button
                     type="button"
-                    className="remove-btn"
+                    className="h-10 w-10 cursor-pointer rounded-lg border border-gray-200 bg-white text-lg text-gray-500 disabled:opacity-35"
                     onClick={() => removeSet(i)}
                     disabled={sets.length === 1}
                     aria-label={`${i + 1}セット目を削除`}
@@ -177,23 +217,37 @@ export default function Workout({ records, onSave }: Props) {
                 </div>
               ))}
             </div>
-            <button type="button" className="add-btn" onClick={addSet} disabled={!canAdd}>
+            <button
+              type="button"
+              className="cursor-pointer rounded-lg border border-dashed border-gray-200 bg-white py-2.5 text-sm font-semibold text-blue-600 disabled:text-gray-500"
+              onClick={addSet}
+              disabled={!canAdd}
+            >
               セットを追加
             </button>
           </div>
         </>
       )}
 
-      <button type="button" className="add-workout-btn" onClick={handleAddWorkout}>
+      <button
+        type="button"
+        className="cursor-pointer rounded-[10px] border border-blue-600 bg-blue-50 py-3.5 text-base font-bold text-blue-600 active:bg-blue-100"
+        onClick={handleAddWorkout}
+      >
         ワークアウトを追加
       </button>
 
-      {formOpen && (
-        <button type="button" className="save-btn" onClick={handleSave} disabled={!valid}>
+      {(formOpen || hasPendingDelete) && (
+        <button
+          type="button"
+          className="cursor-pointer rounded-[10px] border-none bg-blue-600 py-3.5 text-base font-bold text-white active:bg-blue-700 disabled:bg-blue-200"
+          onClick={handleSave}
+          disabled={!canSave}
+        >
           保存
         </button>
       )}
-      {saved && <p className="saved-message">記録しました</p>}
+      {saved && <p className="text-center text-sm font-semibold text-green-600">保存しました</p>}
     </div>
   )
 }

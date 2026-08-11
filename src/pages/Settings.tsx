@@ -41,18 +41,22 @@ export default function Settings({ records, onReplace }: Props) {
   }
 
   return (
-    <div className="page">
-      <h1 className="page-title">設定</h1>
+    <div className="flex flex-col gap-4">
+      <h1 className="mt-2 text-2xl font-bold">データ</h1>
 
-      <p className="record-count">記録件数: {records.length}</p>
+      <p className="text-sm text-gray-500">記録件数: {records.length}</p>
 
-      <div className="settings-group">
-        <button type="button" className="settings-btn" onClick={handleExport}>
+      <div className="flex flex-col gap-3">
+        <button
+          type="button"
+          className="cursor-pointer rounded-[10px] border border-gray-200 bg-white py-3.5 text-base font-semibold text-gray-800 active:bg-gray-100"
+          onClick={handleExport}
+        >
           データをエクスポート
         </button>
         <button
           type="button"
-          className="settings-btn"
+          className="cursor-pointer rounded-[10px] border border-gray-200 bg-white py-3.5 text-base font-semibold text-gray-800 active:bg-gray-100"
           onClick={() => fileInputRef.current?.click()}
         >
           データをインポート
@@ -70,8 +74,8 @@ export default function Settings({ records, onReplace }: Props) {
         />
       </div>
 
-      {message && <p className="message success">{message}</p>}
-      {error && <p className="message error">{error}</p>}
+      {message && <p className="text-center text-sm font-semibold text-green-600">{message}</p>}
+      {error && <p className="text-center text-sm font-semibold text-red-600">{error}</p>}
     </div>
   )
 }

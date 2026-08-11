@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { WorkoutRecord } from '../types'
 import { formatMonthKey, todayKey, toDateKey } from '../date'
+import RecordCard from '../components/RecordCard'
 
 const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土']
 
@@ -20,6 +21,7 @@ export default function Home({ records }: { records: WorkoutRecord[] }) {
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth())
+  const [selectedDate, setSelectedDate] = useState<string | null>(todayKey)
 
   const cells = useMemo(() => buildMonthGrid(year, month), [year, month])
   const recordedDates = useMemo(() => new Set(records.map((r) => r.date)), [records])
@@ -28,65 +30,114 @@ export default function Home({ records }: { records: WorkoutRecord[] }) {
   const monthKey = formatMonthKey(year, month)
   const monthCount = records.filter((r) => r.date.startsWith(monthKey)).length
   const totalCount = records.length
+  const dayRecords = selectedDate
+    ? records.filter((r) => r.date === selectedDate)
+    : []
 
   const moveMonth = (delta: number) => {
     const d = new Date(year, month + delta, 1)
     setYear(d.getFullYear())
     setMonth(d.getMonth())
+    setSelectedDate(null)
   }
 
   return (
-    <div className="page">
-      <h1 className="page-title">ホーム</h1>
+    <div className="flex flex-col gap-4">
+      <h1 className="mt-2 text-2xl font-bold">ホーム</h1>
 
-      <div className="calendar">
-        <div className="calendar-header">
-          <button type="button" className="month-btn" onClick={() => moveMonth(-1)} aria-label="前の月">
+      <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
+        <div className="mb-2 flex items-center justify-between">
+          <button
+            type="button"
+            className="h-9 w-9 cursor-pointer rounded-lg border border-gray-200 bg-white text-lg text-gray-800 active:bg-gray-100"
+            onClick={() => moveMonth(-1)}
+            aria-label="前の月"
+          >
             ‹
           </button>
-          <span className="month-label">
+          <span className="text-base font-semibold">
             {year}年{month + 1}月
           </span>
-          <button type="button" className="month-btn" onClick={() => moveMonth(1)} aria-label="次の月">
+          <button
+            type="button"
+            className="h-9 w-9 cursor-pointer rounded-lg border border-gray-200 bg-white text-lg text-gray-800 active:bg-gray-100"
+            onClick={() => moveMonth(1)}
+            aria-label="次の月"
+          >
             ›
           </button>
         </div>
-        <div className="calendar-grid">
+        <div className="grid grid-cols-7 gap-0.5">
           {WEEKDAYS.map((w) => (
-            <div key={w} className={`weekday${w === '日' ? ' sunday' : ''}`}>
+            <div
+              key={w}
+              className={`py-1 text-center text-xs font-semibold text-gray-500 ${
+                w === '日' ? 'text-red-600' : ''
+              }`}
+            >
               {w}
             </div>
           ))}
           {cells.map((date, i) => {
             const isToday = date === today
+            const isSelected = date === selectedDate
             const hasRecord = date !== null && recordedDates.has(date)
+            const cellClass = isToday
+              ? 'bg-blue-600 font-bold text-white'
+              : isSelected
+                ? 'bg-blue-100 font-bold text-blue-700 ring-2 ring-blue-600'
+                : ''
+            if (date === null) {
+              return <div key={`empty-${i}`} className="aspect-square" />
+            }
             return (
-              <div
-                key={date ?? `empty-${i}`}
-                className={`day${isToday ? ' today' : ''}${date === null ? ' empty' : ''}`}
+              <button
+                key={date}
+                type="button"
+                className={`flex aspect-square cursor-pointer flex-col items-center justify-center gap-0.5 rounded-lg text-[13px] ${cellClass}`}
+                onClick={() => setSelectedDate(date)}
               >
-                {date !== null && (
-                  <>
-                    <span className="day-number">{Number(date.slice(8, 10))}</span>
-                    <span className={`day-dot${hasRecord ? ' recorded' : ''}`} />
-                  </>
-                )}
-              </div>
+                <span>{Number(date.slice(8, 10))}</span>
+                <span
+                  className={`h-[5px] w-[5px] rounded-full ${
+                    hasRecord
+                      ? isToday
+                        ? 'bg-white'
+                        : 'bg-blue-600'
+                      : 'bg-transparent'
+                  }`}
+                />
+              </button>
             )
           })}
         </div>
       </div>
 
-      <div className="stats">
-        <div className="stat-card">
-          <span className="stat-value">{monthCount}</span>
-          <span className="stat-label">当月のワークアウト数</span>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col gap-1 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+          <span className="text-[28px] font-bold text-blue-600">{monthCount}</span>
+          <span className="text-xs text-gray-500">当月のワークアウト数</span>
         </div>
-        <div className="stat-card">
-          <span className="stat-value">{totalCount}</span>
-          <span className="stat-label">累計ワークアウト数</span>
+        <div className="flex flex-col gap-1 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+          <span className="text-[28px] font-bold text-blue-600">{totalCount}</span>
+          <span className="text-xs text-gray-500">累計ワークアウト数</span>
         </div>
       </div>
+
+      {selectedDate !== null && (
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-semibold">
+            {selectedDate.slice(0, 4)}年{Number(selectedDate.slice(5, 7))}月{Number(selectedDate.slice(8, 10))}日のワークアウト
+          </p>
+          {dayRecords.length === 0 ? (
+            <p className="rounded-[10px] border border-gray-200 bg-white py-6 text-center text-sm text-gray-500">
+              この日の記録はありません
+            </p>
+          ) : (
+            dayRecords.map((r) => <RecordCard key={r.id} record={r} />)
+          )}
+        </div>
+      )}
     </div>
   )
 }

@@ -17,5 +17,9 @@ export function useWorkouts() {
     setRecords(next)
   }, [])
 
-  return { records, addRecord, replaceRecords }
+  const deleteRecords = useCallback((ids: string[]) => {
+    setRecords((prev) => prev.filter((r) => !ids.includes(r.id)))
+  }, [])
+
+  return { records, addRecord, replaceRecords, deleteRecords }
 }
