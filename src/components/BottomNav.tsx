@@ -40,9 +40,11 @@ export default function BottomNav({ tab, onChange }: Props) {
         <button
           key={id}
           type="button"
-          className={`flex flex-1 cursor-pointer flex-col items-center gap-0.5 border-none bg-none py-1.5 text-[11px] text-gray-500 ${
-            tab === id ? 'font-semibold text-blue-600' : ''
-          }`}
+          className={
+            tab === id
+              ? 'flex flex-1 cursor-pointer flex-col items-center gap-0.5 border-none bg-none py-1.5 text-[11px] font-semibold text-blue-600'
+              : 'flex flex-1 cursor-pointer flex-col items-center gap-0.5 border-none bg-none py-1.5 text-[11px] text-gray-500'
+          }
           onClick={() => onChange(id)}
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">

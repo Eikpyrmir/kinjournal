@@ -159,9 +159,11 @@ export default function Workout({ records, onSave, onDelete }: Props) {
                 <button
                   key={t.id}
                   type="button"
-                  className={`cursor-pointer rounded-lg border border-gray-200 bg-white px-1 py-2.5 text-sm text-gray-800 ${
-                    type === t.id ? 'border-blue-600 bg-blue-50 font-semibold text-blue-600' : ''
-                  }`}
+                  className={
+                    type === t.id
+                      ? 'cursor-pointer rounded-lg border border-blue-600 bg-blue-50 px-1 py-2.5 text-sm font-semibold text-blue-600'
+                      : 'cursor-pointer rounded-lg border border-gray-200 bg-white px-1 py-2.5 text-sm text-gray-800'
+                  }
                   onClick={() => setType(t.id)}
                 >
                   {t.label}
