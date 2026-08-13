@@ -35,13 +35,16 @@ export function saveRecords(records: WorkoutRecord[]): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(records))
 }
 
-export function exportRecords(records: WorkoutRecord[]): void {
-  const payload = JSON.stringify(
+export function exportPayload(records: WorkoutRecord[]): string {
+  return JSON.stringify(
     { app: 'kinjournal', version: EXPORT_VERSION, exportedAt: new Date().toISOString(), records },
     null,
     2,
   )
-  const blob = new Blob([payload], { type: 'application/json' })
+}
+
+export function exportRecords(records: WorkoutRecord[]): void {
+  const blob = new Blob([exportPayload(records)], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
