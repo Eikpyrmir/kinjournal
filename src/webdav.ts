@@ -1,5 +1,6 @@
 const CONFIG_KEY = 'kinjournal.nextcloud.v1'
 const LAST_BACKUP_KEY = 'kinjournal.lastBackup.v1'
+const BACKUP_DIR_NAME = 'KinJournal'
 const BACKUP_FILE_NAME = 'kinjournal-backup.json'
 const REQUEST_TIMEOUT_MS = 15000
 
@@ -114,7 +115,8 @@ export async function testConnection(config: NextcloudConfig): Promise<void> {
 }
 
 export async function backupToWebdav(config: NextcloudConfig, payload: string): Promise<void> {
-  const res = await request(`${davBase(config)}/${BACKUP_FILE_NAME}`, {
+  await ensureBackupDirectory(config)
+  const res = await request(`${davBase(config)}/${BACKUP_DIR_NAME}/${BACKUP_FILE_NAME}`, {
     method: 'PUT',
     headers: { Authorization: authHeader(config), 'Content-Type': 'application/json' },
     body: payload,
@@ -124,5 +126,18 @@ export async function backupToWebdav(config: NextcloudConfig, payload: string): 
   }
   if (res.status !== 201 && res.status !== 204 && !res.ok) {
     throw new WebdavError('バックアップに失敗しました', res.status)
+  }
+}
+
+async function ensureBackupDirectory(config: NextcloudConfig): Promise<void> {
+  const res = await request(`${davBase(config)}/${BACKUP_DIR_NAME}`, {
+    method: 'MKCOL',
+    headers: { Authorization: authHeader(config) },
+  })
+  if (res.status === 401 || res.status === 403) {
+    throw new WebdavError('認証に失敗しました。ユーザー名とアプリパスワードを確認してください', res.status)
+  }
+  if (res.status !== 201 && res.status !== 405 && res.status !== 301) {
+    throw new WebdavError('フォルダの作成に失敗しました', res.status)
   }
 }

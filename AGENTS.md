@@ -13,7 +13,7 @@
 
 - `src/types.ts` — データモデル。`WorkoutType` は種別ごとに単位を持つ（abs/squat=回, plank=秒）。単位は種類を増やすときにここに追加する
 - `src/storage.ts` — localStorage キー `kinjournal.records.v1`。読み込みは `isValidRecord` で検証。`parseImport` はインポートJSONの検証（エクスポートは `{app, version, records}` 形式）
-- `src/webdav.ts` — Nextcloud WebDAV バックアップ。キー `kinjournal.nextcloud.v1`（接続設定・平文、`enabled` で自動実行を制御）、`kinjournal.lastBackup.v1`。`kinjournal-backup.json` をルート直下に PUT（上書き）。1日1回の自動実行はワークアウト保存後に App.tsx の `handleSaved` から起動。ブラウザから直接接続するため Nextcloud 側に CORS（`cors.allowed-domains`）設定が必須。復元機能はない
+- `src/webdav.ts` — Nextcloud WebDAV バックアップ。キー `kinjournal.nextcloud.v1`（接続設定・平文、`enabled` で自動実行を制御）、`kinjournal.lastBackup.v1`。`KinJournal/kinjournal-backup.json` を PUT（上書き、フォルダがなければ MKCOL で作成）。1日1回の自動実行はワークアウト保存後に App.tsx の `handleSaved` から起動。ブラウザから直接接続するため Nextcloud 側に CORS（`cors.allowed-domains`）設定が必須。復元機能はない
 - `src/date.ts` — 記録の日付は必ずこの `toDateKey` / `todayKey` でローカルタイムゾーンの `YYYY-MM-DD` を生成。UTCメソッドや `toISOString` は時差バグになるので使わない
 - `src/App.tsx` — タブ切替を useState で行う簡易ルーティング（react-router なし）。タブ追加時はここにページを追加
 - `src/hooks/useWorkouts.ts` — records の状態管理。全画面はこれを通してアクセスする
