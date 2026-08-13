@@ -35,7 +35,7 @@ export default function Settings({ records, onReplace }: Props) {
   const [ncUrl, setNcUrl] = useState(() => loadNextcloudConfig()?.url ?? '')
   const [ncUser, setNcUser] = useState(() => loadNextcloudConfig()?.username ?? '')
   const [ncPass, setNcPass] = useState(() => loadNextcloudConfig()?.appPassword ?? '')
-  const [ncEnabled, setNcEnabled] = useState(() => loadNextcloudConfig()?.enabled ?? true)
+  const [ncEnabled, setNcEnabled] = useState(() => loadNextcloudConfig()?.enabled ?? false)
   const [lastBackup, setLastBackup] = useState<LastBackupInfo | null>(loadLastBackup)
   const [ncMessage, setNcMessage] = useState<string | null>(null)
   const [ncError, setNcError] = useState<string | null>(null)

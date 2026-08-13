@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import BottomNav, { type TabId } from './components/BottomNav'
 import Home from './pages/Home'
 import Workout from './pages/Workout'
@@ -8,28 +8,49 @@ import { useWorkouts } from './hooks/useWorkouts'
 import { exportPayload } from './storage'
 import { backupToWebdav, loadLastBackup, loadNextcloudConfig, saveLastBackup } from './webdav'
 import { todayKey } from './date'
+import type { WorkoutRecord } from './types'
 
 export default function App() {
   const [tab, setTab] = useState<TabId>('home')
   const { records, addRecord, replaceRecords, deleteRecords } = useWorkouts()
-  const backupAttempted = useRef(false)
   const [backupError, setBackupError] = useState(false)
+  const saveOps = useRef<{ added: WorkoutRecord | null; deleted: string[] }>({
+    added: null,
+    deleted: [],
+  })
 
-  useEffect(() => {
-    if (backupAttempted.current) return
-    backupAttempted.current = true
+  const tryAutoBackup = async (payload: string) => {
     const config = loadNextcloudConfig()
     if (!config || !config.enabled) return
     const last = loadLastBackup()
     if (last?.date === todayKey()) return
-    backupToWebdav(config, exportPayload(records))
-      .then(() => {
-        saveLastBackup({ date: todayKey(), at: Date.now() })
-      })
-      .catch(() => {
-        setBackupError(true)
-      })
-  }, [records])
+    try {
+      await backupToWebdav(config, payload)
+      saveLastBackup({ date: todayKey(), at: Date.now() })
+      setBackupError(false)
+    } catch {
+      setBackupError(true)
+    }
+  }
+
+  const handleSave = (record: WorkoutRecord) => {
+    addRecord(record)
+    saveOps.current.added = record
+  }
+
+  const handleDelete = (ids: string[]) => {
+    deleteRecords(ids)
+    saveOps.current.deleted = ids
+  }
+
+  const handleSaved = () => {
+    const { added, deleted } = saveOps.current
+    const next = records.filter((r) => !deleted.includes(r.id))
+    if (added) next.push(added)
+    const payload = exportPayload(next)
+    saveOps.current = { added: null, deleted: [] }
+    void tryAutoBackup(payload)
+  }
 
   return (
     <div className="mx-auto flex min-h-svh max-w-[480px] flex-col bg-bg">
@@ -49,7 +70,12 @@ export default function App() {
         )}
         {tab === 'home' && <Home records={records} />}
         {tab === 'workout' && (
-          <Workout records={records} onSave={addRecord} onDelete={deleteRecords} />
+          <Workout
+            records={records}
+            onSave={handleSave}
+            onDelete={handleDelete}
+            onSaved={handleSaved}
+          />
         )}
         {tab === 'graph' && <Graph records={records} />}
         {tab === 'settings' && (

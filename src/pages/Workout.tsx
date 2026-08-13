@@ -8,9 +8,10 @@ interface Props {
   records: WorkoutRecord[]
   onSave: (record: WorkoutRecord) => void
   onDelete: (ids: string[]) => void
+  onSaved?: () => void
 }
 
-export default function Workout({ records, onSave, onDelete }: Props) {
+export default function Workout({ records, onSave, onDelete, onSaved }: Props) {
   const [date, setDate] = useState(todayKey)
   const [type, setType] = useState<WorkoutTypeId>('abs')
   const [memo, setMemo] = useState('')
@@ -76,6 +77,7 @@ export default function Workout({ records, onSave, onDelete }: Props) {
     setPendingDelete([])
     resetForm()
     setSaved(true)
+    onSaved?.()
     window.setTimeout(() => setSaved(false), 2500)
   }
 

@@ -40,7 +40,7 @@ export function loadNextcloudConfig(): NextcloudConfig | null {
         url: o.url,
         username: o.username,
         appPassword: o.appPassword,
-        enabled: o.enabled !== false,
+        enabled: o.enabled === true,
       }
     }
     return null
