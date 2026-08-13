@@ -6,12 +6,19 @@ import Graph from './pages/Graph'
 import Settings from './pages/Settings'
 import { useWorkouts } from './hooks/useWorkouts'
 import { exportPayload } from './storage'
-import { backupToWebdav, loadLastBackup, loadNextcloudConfig, saveLastBackup } from './webdav'
+import {
+  backupToWebdav,
+  loadLastBackup,
+  loadNextcloudConfig,
+  saveLastBackup,
+  type BackupResult,
+} from './webdav'
 import { todayKey } from './date'
 import type { WorkoutRecord } from './types'
 
 export default function App() {
   const [tab, setTab] = useState<TabId>('home')
+  const [workoutInitialDate, setWorkoutInitialDate] = useState<string | null>(null)
   const { records, addRecord, replaceRecords, deleteRecords } = useWorkouts()
   const [backupError, setBackupError] = useState(false)
   const saveOps = useRef<{ added: WorkoutRecord | null; deleted: string[] }>({
@@ -19,17 +26,29 @@ export default function App() {
     deleted: [],
   })
 
-  const tryAutoBackup = async (payload: string) => {
+  const handleChangeTab = (next: TabId) => {
+    if (next !== 'workout') setWorkoutInitialDate(null)
+    setTab(next)
+  }
+
+  const handleOpenWorkoutDate = (date: string) => {
+    setWorkoutInitialDate(date)
+    setTab('workout')
+  }
+
+  const tryAutoBackup = async (payload: string): Promise<BackupResult> => {
     const config = loadNextcloudConfig()
-    if (!config || !config.enabled) return
+    if (!config || !config.enabled) return 'skipped'
     const last = loadLastBackup()
-    if (last?.date === todayKey()) return
+    if (last?.date === todayKey()) return 'skipped'
     try {
       await backupToWebdav(config, payload)
       saveLastBackup({ date: todayKey(), at: Date.now() })
       setBackupError(false)
+      return 'success'
     } catch {
       setBackupError(true)
+      return 'failed'
     }
   }
 
@@ -43,13 +62,13 @@ export default function App() {
     saveOps.current.deleted = ids
   }
 
-  const handleSaved = () => {
+  const handleSaved = async (): Promise<BackupResult> => {
     const { added, deleted } = saveOps.current
     const next = records.filter((r) => !deleted.includes(r.id))
     if (added) next.push(added)
     const payload = exportPayload(next)
     saveOps.current = { added: null, deleted: [] }
-    void tryAutoBackup(payload)
+    return tryAutoBackup(payload)
   }
 
   return (
@@ -68,10 +87,11 @@ export default function App() {
             </button>
           </div>
         )}
-        {tab === 'home' && <Home records={records} />}
+        {tab === 'home' && <Home records={records} onOpenWorkoutDate={handleOpenWorkoutDate} />}
         {tab === 'workout' && (
           <Workout
             records={records}
+            initialDate={workoutInitialDate}
             onSave={handleSave}
             onDelete={handleDelete}
             onSaved={handleSaved}
@@ -82,7 +102,7 @@ export default function App() {
           <Settings records={records} onReplace={replaceRecords} />
         )}
       </main>
-      <BottomNav tab={tab} onChange={setTab} />
+      <BottomNav tab={tab} onChange={handleChangeTab} />
     </div>
   )
 }

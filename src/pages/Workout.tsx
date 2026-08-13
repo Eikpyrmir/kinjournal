@@ -1,31 +1,52 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { WORKOUT_TYPES, getWorkoutType, type WorkoutRecord, type WorkoutTypeId } from '../types'
 import { todayKey } from '../date'
+import type { BackupResult } from '../webdav'
 
 const MAX_SETS = 10
+const NOTICE_MS = 2500
 
 interface Props {
   records: WorkoutRecord[]
+  initialDate?: string | null
   onSave: (record: WorkoutRecord) => void
   onDelete: (ids: string[]) => void
-  onSaved?: () => void
+  onSaved?: () => Promise<BackupResult>
 }
 
-export default function Workout({ records, onSave, onDelete, onSaved }: Props) {
-  const [date, setDate] = useState(todayKey)
+export default function Workout({ records, initialDate, onSave, onDelete, onSaved }: Props) {
+  const effectiveInitialDate = initialDate ?? todayKey()
+  const [date, setDate] = useState(effectiveInitialDate)
   const [type, setType] = useState<WorkoutTypeId>('abs')
   const [memo, setMemo] = useState('')
   const [sets, setSets] = useState<string[]>([''])
-  const [saved, setSaved] = useState(false)
+  const [notice, setNotice] = useState<null | { backup: 'pending' | BackupResult }>(null)
   const [pendingDelete, setPendingDelete] = useState<string[]>([])
   const [formOpen, setFormOpen] = useState(
-    () => !records.some((r) => r.date === todayKey()),
+    () => !records.some((r) => r.date === effectiveInitialDate),
+  )
+  const hideTimer = useRef<number | null>(null)
+
+  useEffect(
+    () => () => {
+      if (hideTimer.current !== null) window.clearTimeout(hideTimer.current)
+    },
+    [],
   )
 
   const dayRecords = records.filter((r) => r.date === date)
   const unit = getWorkoutType(type).unit
   const canAdd = sets.length < MAX_SETS
   const hasPendingDelete = pendingDelete.length > 0
+
+  const displayNotice = (backup: 'pending' | BackupResult) => {
+    if (hideTimer.current !== null) window.clearTimeout(hideTimer.current)
+    setNotice({ backup })
+    hideTimer.current = window.setTimeout(() => {
+      setNotice(null)
+      hideTimer.current = null
+    }, NOTICE_MS)
+  }
 
   const handleDateChange = (value: string) => {
     setDate(value)
@@ -34,14 +55,14 @@ export default function Workout({ records, onSave, onDelete, onSaved }: Props) {
     setType('abs')
     setMemo('')
     setSets([''])
-    setSaved(false)
+    setNotice(null)
   }
 
   const resetForm = () => {
     setType('abs')
     setMemo('')
     setSets([''])
-    setSaved(false)
+    setNotice(null)
   }
 
   const addSet = () => {
@@ -57,7 +78,7 @@ export default function Workout({ records, onSave, onDelete, onSaved }: Props) {
     setSets((prev) => prev.map((v, i) => (i === index ? value : v)))
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const parsed = sets
       .map((s) => Number(s.trim()))
       .filter((n) => Number.isFinite(n) && n > 0)
@@ -76,9 +97,9 @@ export default function Workout({ records, onSave, onDelete, onSaved }: Props) {
     }
     setPendingDelete([])
     resetForm()
-    setSaved(true)
-    onSaved?.()
-    window.setTimeout(() => setSaved(false), 2500)
+    displayNotice('pending')
+    const result = onSaved ? await onSaved() : ('skipped' as BackupResult)
+    displayNotice(result)
   }
 
   const toggleDelete = (id: string) => {
@@ -251,7 +272,17 @@ export default function Workout({ records, onSave, onDelete, onSaved }: Props) {
           保存
         </button>
       )}
-      {saved && <p className="text-center text-sm font-semibold text-green-600">保存しました</p>}
+      {notice && (
+        <div className="flex flex-col items-center gap-1">
+          <p className="text-sm font-semibold text-green-600">保存しました</p>
+          {notice.backup === 'success' && (
+            <p className="text-sm font-semibold text-green-600">自動バックアップを実行しました</p>
+          )}
+          {notice.backup === 'failed' && (
+            <p className="text-sm font-semibold text-red-600">自動バックアップに失敗しました</p>
+          )}
+        </div>
+      )}
     </div>
   )
 }

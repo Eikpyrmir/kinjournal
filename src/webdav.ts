@@ -16,6 +16,8 @@ export interface LastBackupInfo {
   at: number
 }
 
+export type BackupResult = 'success' | 'failed' | 'skipped'
+
 export class WebdavError extends Error {
   readonly status?: number
 

@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import type { WorkoutRecord } from '../types'
 import { formatMonthKey, todayKey, toDateKey } from '../date'
 import RecordCard from '../components/RecordCard'
 
 const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土']
+const DOUBLE_TAP_MS = 300
 
 function buildMonthGrid(year: number, month: number): (string | null)[] {
   const startOffset = new Date(year, month, 1).getDay()
@@ -17,11 +18,18 @@ function buildMonthGrid(year: number, month: number): (string | null)[] {
   return cells
 }
 
-export default function Home({ records }: { records: WorkoutRecord[] }) {
+export default function Home({
+  records,
+  onOpenWorkoutDate,
+}: {
+  records: WorkoutRecord[]
+  onOpenWorkoutDate: (date: string) => void
+}) {
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth())
   const [selectedDate, setSelectedDate] = useState<string | null>(todayKey)
+  const lastTap = useRef<{ date: string; at: number } | null>(null)
 
   const cells = useMemo(() => buildMonthGrid(year, month), [year, month])
   const recordedDates = useMemo(() => new Set(records.map((r) => r.date)), [records])
@@ -39,6 +47,17 @@ export default function Home({ records }: { records: WorkoutRecord[] }) {
     setYear(d.getFullYear())
     setMonth(d.getMonth())
     setSelectedDate(null)
+  }
+
+  const handleDayTap = (date: string) => {
+    setSelectedDate(date)
+    const nowAt = Date.now()
+    if (lastTap.current !== null && lastTap.current.date === date && nowAt - lastTap.current.at < DOUBLE_TAP_MS) {
+      lastTap.current = null
+      onOpenWorkoutDate(date)
+    } else {
+      lastTap.current = { date, at: nowAt }
+    }
   }
 
   return (
@@ -94,8 +113,8 @@ export default function Home({ records }: { records: WorkoutRecord[] }) {
               <button
                 key={date}
                 type="button"
-                className={`flex aspect-square cursor-pointer flex-col items-center justify-center gap-0.5 rounded-lg text-[13px] ${cellClass}`}
-                onClick={() => setSelectedDate(date)}
+                className={`flex aspect-square cursor-pointer touch-manipulation flex-col items-center justify-center gap-0.5 rounded-lg text-[13px] ${cellClass}`}
+                onClick={() => handleDayTap(date)}
               >
                 <span>{Number(date.slice(8, 10))}</span>
                 <span
