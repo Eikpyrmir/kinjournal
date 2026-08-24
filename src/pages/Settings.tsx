@@ -250,6 +250,8 @@ export default function Settings({ records, onReplace }: Props) {
           )}
         </div>
       </div>
+
+      <p className="text-xs text-muted">バージョン : {__BUILD_VERSION__}</p>
       {ncToast && <Toast message={ncToast} />}
     </div>
   )

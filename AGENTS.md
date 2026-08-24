@@ -26,3 +26,4 @@
 - 設定画面のインポートは既存データを**置き換え**（confirm 後に）。マージ機能はない
 - グラフは recharts（bundle 500KB超の警告は既知、対応不要）
 - PWA: vite-plugin-pwa（autoUpdate）。アイコン PNG は `node scripts/gen-icon.mjs` で再生成（public/icons/ へ出力、SVGは直接は書けない）
+- バージョン表示: `npm run build` 実行のたびに `scripts/next-build-version.mjs` が `build-info.json`（gitignore、`{date, count}`）を更新し `vite.config.ts` が `__BUILD_VERSION__` として埋め込む。形式は `YYYYMMDD.カウント`（日付が変わると 1 にリセット）。データ画面の最下部に表示。dev 時は `dev`
