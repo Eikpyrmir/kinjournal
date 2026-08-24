@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { WORKOUT_TYPES, getWorkoutType, type WorkoutRecord, type WorkoutTypeId } from '../types'
 import { todayKey } from '../date'
 import type { BackupResult } from '../webdav'
 import Toast from '../components/Toast'
+import { useToast } from '../hooks/useToast'
 
 const MAX_SETS = 10
-const NOTICE_MS = 2500
 
 interface Props {
   records: WorkoutRecord[]
@@ -21,33 +21,16 @@ export default function Workout({ records, initialDate, onSave, onDelete, onSave
   const [type, setType] = useState<WorkoutTypeId>('abs')
   const [memo, setMemo] = useState('')
   const [sets, setSets] = useState<string[]>([''])
-  const [notice, setNotice] = useState<string | null>(null)
+  const { message: notice, showToast: displayNotice, clearToast } = useToast()
   const [pendingDelete, setPendingDelete] = useState<string[]>([])
   const [formOpen, setFormOpen] = useState(
     () => !records.some((r) => r.date === effectiveInitialDate),
-  )
-  const hideTimer = useRef<number | null>(null)
-
-  useEffect(
-    () => () => {
-      if (hideTimer.current !== null) window.clearTimeout(hideTimer.current)
-    },
-    [],
   )
 
   const dayRecords = records.filter((r) => r.date === date)
   const unit = getWorkoutType(type).unit
   const canAdd = sets.length < MAX_SETS
   const hasPendingDelete = pendingDelete.length > 0
-
-  const displayNotice = (message: string) => {
-    if (hideTimer.current !== null) window.clearTimeout(hideTimer.current)
-    setNotice(message)
-    hideTimer.current = window.setTimeout(() => {
-      setNotice(null)
-      hideTimer.current = null
-    }, NOTICE_MS)
-  }
 
   const handleDateChange = (value: string) => {
     setDate(value)
@@ -56,14 +39,14 @@ export default function Workout({ records, initialDate, onSave, onDelete, onSave
     setType('abs')
     setMemo('')
     setSets([''])
-    setNotice(null)
+    clearToast()
   }
 
   const resetForm = () => {
     setType('abs')
     setMemo('')
     setSets([''])
-    setNotice(null)
+    clearToast()
   }
 
   const addSet = () => {

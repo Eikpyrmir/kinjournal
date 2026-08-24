@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react'
 import { exportPayload, exportRecords, parseImport } from '../storage'
 import type { WorkoutRecord } from '../types'
+import Toast from '../components/Toast'
+import { useToast } from '../hooks/useToast'
 import {
   backupToWebdav,
   loadLastBackup,
@@ -37,8 +39,7 @@ export default function Settings({ records, onReplace }: Props) {
   const [ncPass, setNcPass] = useState(() => loadNextcloudConfig()?.appPassword ?? '')
   const [ncEnabled, setNcEnabled] = useState(() => loadNextcloudConfig()?.enabled ?? false)
   const [lastBackup, setLastBackup] = useState<LastBackupInfo | null>(loadLastBackup)
-  const [ncMessage, setNcMessage] = useState<string | null>(null)
-  const [ncError, setNcError] = useState<string | null>(null)
+  const { message: ncToast, showToast: showNcToast } = useToast()
 
   const handleExport = () => {
     if (records.length === 0) {
@@ -71,8 +72,7 @@ export default function Settings({ records, onReplace }: Props) {
   const buildConfig = (): NextcloudConfig | null => {
     const url = ncUrl.trim()
     if (!/^https?:\/\//.test(url) || ncUser.trim() === '' || ncPass === '') {
-      setNcError('URL・ユーザー名・アプリパスワードを入力してください')
-      setNcMessage(null)
+      showNcToast('URL・ユーザー名・アプリパスワードを入力してください')
       return null
     }
     return { url, username: ncUser.trim(), appPassword: ncPass, enabled: ncEnabled }
@@ -83,10 +83,9 @@ export default function Settings({ records, onReplace }: Props) {
     const saved = loadNextcloudConfig()
     if (saved) {
       saveNextcloudConfig({ ...saved, enabled: checked })
-      setNcMessage(
+      showNcToast(
         checked ? '自動バックアップを有効にしました' : '自動バックアップを無効にしました',
       )
-      setNcError(null)
     }
   }
 
@@ -94,8 +93,7 @@ export default function Settings({ records, onReplace }: Props) {
     const config = buildConfig()
     if (!config) return
     saveNextcloudConfig(config)
-    setNcMessage('設定を保存しました')
-    setNcError(null)
+    showNcToast('設定を保存しました')
   }
 
   const handleTestConnection = () => {
@@ -103,19 +101,16 @@ export default function Settings({ records, onReplace }: Props) {
     if (!config) return
     testConnection(config)
       .then(() => {
-        setNcMessage('接続に成功しました')
-        setNcError(null)
+        showNcToast('接続に成功しました')
       })
       .catch((err: unknown) => {
-        setNcError(err instanceof Error ? err.message : '接続に失敗しました')
-        setNcMessage(null)
+        showNcToast(err instanceof Error ? err.message : '接続に失敗しました')
       })
   }
 
   const handleBackupNow = () => {
     if (records.length === 0) {
-      setNcError('記録がまだありません')
-      setNcMessage(null)
+      showNcToast('記録がまだありません')
       return
     }
     const config = loadNextcloudConfig() ?? buildConfig()
@@ -124,12 +119,10 @@ export default function Settings({ records, onReplace }: Props) {
       .then(() => {
         saveLastBackup({ date: todayKey(), at: Date.now() })
         setLastBackup({ date: todayKey(), at: Date.now() })
-        setNcMessage('バックアップしました')
-        setNcError(null)
+        showNcToast('バックアップしました')
       })
       .catch((err: unknown) => {
-        setNcError(err instanceof Error ? err.message : 'バックアップに失敗しました')
-        setNcMessage(null)
+        showNcToast(err instanceof Error ? err.message : 'バックアップに失敗しました')
       })
   }
 
@@ -255,14 +248,9 @@ export default function Settings({ records, onReplace }: Props) {
           {lastBackup && (
             <p className="text-xs text-muted">最終バックアップ: {formatLastBackup(lastBackup)}</p>
           )}
-          {ncMessage && (
-            <p className="text-center text-sm font-semibold text-green-600">{ncMessage}</p>
-          )}
-          {ncError && (
-            <p className="text-center text-sm font-semibold text-red-600">{ncError}</p>
-          )}
         </div>
       </div>
+      {ncToast && <Toast message={ncToast} />}
     </div>
   )
 }
