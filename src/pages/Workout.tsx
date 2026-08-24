@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { WORKOUT_TYPES, getWorkoutType, type WorkoutRecord, type WorkoutTypeId } from '../types'
 import { todayKey } from '../date'
 import type { BackupResult } from '../webdav'
+import Toast from '../components/Toast'
 
 const MAX_SETS = 10
 const NOTICE_MS = 2500
@@ -20,7 +21,7 @@ export default function Workout({ records, initialDate, onSave, onDelete, onSave
   const [type, setType] = useState<WorkoutTypeId>('abs')
   const [memo, setMemo] = useState('')
   const [sets, setSets] = useState<string[]>([''])
-  const [notice, setNotice] = useState<null | { backup: 'pending' | BackupResult }>(null)
+  const [notice, setNotice] = useState<string | null>(null)
   const [pendingDelete, setPendingDelete] = useState<string[]>([])
   const [formOpen, setFormOpen] = useState(
     () => !records.some((r) => r.date === effectiveInitialDate),
@@ -39,9 +40,9 @@ export default function Workout({ records, initialDate, onSave, onDelete, onSave
   const canAdd = sets.length < MAX_SETS
   const hasPendingDelete = pendingDelete.length > 0
 
-  const displayNotice = (backup: 'pending' | BackupResult) => {
+  const displayNotice = (message: string) => {
     if (hideTimer.current !== null) window.clearTimeout(hideTimer.current)
-    setNotice({ backup })
+    setNotice(message)
     hideTimer.current = window.setTimeout(() => {
       setNotice(null)
       hideTimer.current = null
@@ -97,9 +98,10 @@ export default function Workout({ records, initialDate, onSave, onDelete, onSave
     }
     setPendingDelete([])
     resetForm()
-    displayNotice('pending')
+    displayNotice('保存しました')
     const result = onSaved ? await onSaved() : ('skipped' as BackupResult)
-    displayNotice(result)
+    if (result === 'success') displayNotice('自動バックアップを実行しました')
+    if (result === 'failed') displayNotice('自動バックアップに失敗しました')
   }
 
   const toggleDelete = (id: string) => {
@@ -272,17 +274,7 @@ export default function Workout({ records, initialDate, onSave, onDelete, onSave
           保存
         </button>
       )}
-      {notice && (
-        <div className="flex flex-col items-center gap-1">
-          <p className="text-sm font-semibold text-green-600">保存しました</p>
-          {notice.backup === 'success' && (
-            <p className="text-sm font-semibold text-green-600">自動バックアップを実行しました</p>
-          )}
-          {notice.backup === 'failed' && (
-            <p className="text-sm font-semibold text-red-600">自動バックアップに失敗しました</p>
-          )}
-        </div>
-      )}
+      {notice && <Toast message={notice} />}
     </div>
   )
 }
