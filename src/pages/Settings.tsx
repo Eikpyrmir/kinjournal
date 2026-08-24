@@ -31,33 +31,28 @@ function formatLastBackup(info: LastBackupInfo): string {
 
 export default function Settings({ records, onReplace }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [message, setMessage] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const { message: toast, showToast } = useToast()
 
   const [ncUrl, setNcUrl] = useState(() => loadNextcloudConfig()?.url ?? '')
   const [ncUser, setNcUser] = useState(() => loadNextcloudConfig()?.username ?? '')
   const [ncPass, setNcPass] = useState(() => loadNextcloudConfig()?.appPassword ?? '')
   const [ncEnabled, setNcEnabled] = useState(() => loadNextcloudConfig()?.enabled ?? false)
   const [lastBackup, setLastBackup] = useState<LastBackupInfo | null>(loadLastBackup)
-  const { message: ncToast, showToast: showNcToast } = useToast()
 
   const handleExport = () => {
     if (records.length === 0) {
-      setError('記録がまだありません')
-      setMessage(null)
+      showToast('記録がまだありません')
       return
     }
     exportRecords(records)
-    setMessage('エクスポートしました')
-    setError(null)
+    showToast('エクスポートしました')
   }
 
   const handleImport = async (file: File) => {
     const text = await file.text()
     const imported = parseImport(text)
     if (!imported) {
-      setError('インポートに失敗しました。ファイルの形式を確認してください')
-      setMessage(null)
+      showToast('インポートに失敗しました。ファイルの形式を確認してください')
       return
     }
     const ok = window.confirm(
@@ -65,14 +60,13 @@ export default function Settings({ records, onReplace }: Props) {
     )
     if (!ok) return
     onReplace(imported)
-    setMessage('インポートしました')
-    setError(null)
+    showToast('インポートしました')
   }
 
   const buildConfig = (): NextcloudConfig | null => {
     const url = ncUrl.trim()
     if (!/^https?:\/\//.test(url) || ncUser.trim() === '' || ncPass === '') {
-      showNcToast('URL・ユーザー名・アプリパスワードを入力してください')
+      showToast('URL・ユーザー名・アプリパスワードを入力してください')
       return null
     }
     return { url, username: ncUser.trim(), appPassword: ncPass, enabled: ncEnabled }
@@ -83,7 +77,7 @@ export default function Settings({ records, onReplace }: Props) {
     const saved = loadNextcloudConfig()
     if (saved) {
       saveNextcloudConfig({ ...saved, enabled: checked })
-      showNcToast(
+      showToast(
         checked ? '自動バックアップを有効にしました' : '自動バックアップを無効にしました',
       )
     }
@@ -93,7 +87,7 @@ export default function Settings({ records, onReplace }: Props) {
     const config = buildConfig()
     if (!config) return
     saveNextcloudConfig(config)
-    showNcToast('設定を保存しました')
+    showToast('設定を保存しました')
   }
 
   const handleTestConnection = () => {
@@ -101,16 +95,16 @@ export default function Settings({ records, onReplace }: Props) {
     if (!config) return
     testConnection(config)
       .then(() => {
-        showNcToast('接続に成功しました')
+        showToast('接続に成功しました')
       })
       .catch((err: unknown) => {
-        showNcToast(err instanceof Error ? err.message : '接続に失敗しました')
+        showToast(err instanceof Error ? err.message : '接続に失敗しました')
       })
   }
 
   const handleBackupNow = () => {
     if (records.length === 0) {
-      showNcToast('記録がまだありません')
+      showToast('記録がまだありません')
       return
     }
     const config = loadNextcloudConfig() ?? buildConfig()
@@ -119,10 +113,10 @@ export default function Settings({ records, onReplace }: Props) {
       .then(() => {
         saveLastBackup({ date: todayKey(), at: Date.now() })
         setLastBackup({ date: todayKey(), at: Date.now() })
-        showNcToast('バックアップしました')
+        showToast('バックアップしました')
       })
       .catch((err: unknown) => {
-        showNcToast(err instanceof Error ? err.message : 'バックアップに失敗しました')
+        showToast(err instanceof Error ? err.message : 'バックアップに失敗しました')
       })
   }
 
@@ -159,9 +153,6 @@ export default function Settings({ records, onReplace }: Props) {
           }}
         />
       </div>
-
-      {message && <p className="text-center text-sm font-semibold text-green-600">{message}</p>}
-      {error && <p className="text-center text-sm font-semibold text-red-600">{error}</p>}
 
       <div className="border-t border-border pt-4">
         <div className="flex flex-col gap-2">
@@ -254,7 +245,7 @@ export default function Settings({ records, onReplace }: Props) {
       <p className="border-t border-border pt-4 text-xs text-muted">
         バージョン : {__BUILD_VERSION__}
       </p>
-      {ncToast && <Toast message={ncToast} />}
+      {toast && <Toast message={toast} />}
     </div>
   )
 }
